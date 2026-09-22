@@ -33,10 +33,6 @@ module pivot_tile #(
     wire [N*DIST_WIDTH-1:0]      hamming_result;
     wire [K*IDX_WIDTH-1:0]       topk_result;
 
-    // All six submodules are physically present and computing every cycle
-    // off the same shared inputs. The opcode below only selects which of
-    // their already-computed answers gets driven onto the output buses --
-    // it does not gate or call any of them.
 
     pivot_xor #(.WIDTH(WIDTH), .N(N)) u_xor (
         .clk(clk), .rst(rst),
