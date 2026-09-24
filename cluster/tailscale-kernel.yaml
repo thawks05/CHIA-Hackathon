@@ -1,0 +1,26 @@
+# Existing kernel-mode Tailscale on Linux (tailscale0 interface).
+# Ordinary Ray networking over existing 100.x addresses. No CHIA userspace relay.
+# Use RAY_ADDRESS=$HEAD_TAILNET_IP:6379 and unset grpc_proxy/no_grpc_proxy.
+cluster_name: PivotKernelTailnet
+provider:
+  head_ip: ${HEAD_TAILNET_IP}
+auth:
+  ssh_user: ${HEAD_SSH_USER}
+  ssh_private_key: ${HEAD_SSH_PRIVATE_KEY}
+  overrides:
+    ${WORKER_TAILNET_IP}:
+      ssh_user: ${WORKER_SSH_USER}
+      ssh_private_key: ${WORKER_SSH_PRIVATE_KEY}
+available_node_types:
+  pivot_worker:
+    resources: {pivot_tier0: 1, pivot_tier1: 4, pivot_synth: 1}
+    num_workers: 1
+    compatible_ips: ["${WORKER_TAILNET_IP}"]
+    worker_env_commands:
+      - "source $HOME/miniconda3/etc/profile.d/conda.sh && conda activate chia_env"
+head_env_commands:
+  - "source $HOME/miniconda3/etc/profile.d/conda.sh && conda activate chia_env"
+head_start_ray_commands:
+  - "ray start --head --node-ip-address=${HEAD_TAILNET_IP} --port=6379 --include-dashboard=False --dashboard-agent-listen-port=0 --resources='{\"head\":1}'"
+worker_start_ray_commands:
+  - "ray start --node-ip-address=${WORKER_TAILNET_IP} --address=$RAY_HEAD_IP:6379 --dashboard-agent-listen-port=0"

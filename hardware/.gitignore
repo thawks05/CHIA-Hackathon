@@ -1,0 +1,7 @@
+.tools/
+target/
+project/target/
+project/project/
+generated/
+.bsp/
+.metals/

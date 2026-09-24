@@ -1,0 +1,28 @@
+# Existing Linux hosts with userspace tailscaled and SOCKS5 on both hosts.
+# This config provisions no VM and requires no Tailscale auth key.
+cluster_name: PivotExisting
+tailnet:
+  head_tailnet_ip: ${HEAD_TAILNET_IP}
+  socks_proxy: 127.0.0.1:1055
+provider:
+  head_ip: ${HEAD_IP}
+auth:
+  ssh_user: ${HEAD_SSH_USER}
+  ssh_private_key: ${HEAD_SSH_PRIVATE_KEY}
+  overrides:
+    ${WORKER_TAILNET_IP}:
+      ssh_user: ${WORKER_SSH_USER}
+      ssh_private_key: ${WORKER_SSH_PRIVATE_KEY}
+available_node_types:
+  pivot_worker:
+    resources: {pivot_tier0: 1, pivot_tier1: 4, pivot_synth: 1}
+    num_workers: 1
+    compatible_ips: ["${WORKER_TAILNET_IP}"]
+    worker_env_commands:
+      - "source $HOME/miniconda3/etc/profile.d/conda.sh && conda activate chia_env"
+head_env_commands:
+  - "source $HOME/miniconda3/etc/profile.d/conda.sh && conda activate chia_env"
+head_start_ray_commands:
+  - "ray start --head --port=6379 --include-dashboard=False --dashboard-agent-listen-port=0 --resources='{\"head\":1}'"
+worker_start_ray_commands:
+  - "ray start --address=$RAY_HEAD_IP:6379 --dashboard-agent-listen-port=0"
