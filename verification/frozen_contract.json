@@ -1,0 +1,11 @@
+{
+  "contract": "pivot-combinational-v1",
+  "purpose": "Reviewed trusted evaluator hashes; never editable by RTL candidates",
+  "sha256": {
+    "model/pivot_golden.py": "5a931356496c6f99278715eeebfc6b58919f042b8b827b111d1dbc90106ae2c1",
+    "verification/generate.py": "69522f4080d437d8ffc1867f9a51ec18c77fd3fa1ef2163c358c699679691513",
+    "verification/run.py": "9a674997bb533ffdfd5c757f75686f246d6c1f4c8293b97e5fc1dcbe9c4d8b53",
+    "verification/workloads.py": "dad47bb033bae765200a689417875747be29b1b59544c883fa1164831396745c",
+    "tb/pivot_tb.v": "dbf08bb33cfa4a691f670329b854c81fddfdfab556b78d0d404837923c73be96"
+  }
+}

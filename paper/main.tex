@@ -1,0 +1,211 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage{amsmath}
+\title{PIVOT: An Auditable CHIA Loop for Near-Memory Binary-Vector Design}
+\author{\IEEEauthorblockN{Author names to be supplied by the team}
+\IEEEauthorblockA{Affiliation and contact to be supplied}}
+\begin{document}
+\maketitle
+\begin{abstract}
+PIVOT explores the design of a near-memory binary-vector tile using a frozen
+functional evaluator, restricted address-mapping programs, and matched
+grid/random controls. Hyperdimensional operations and a simplified spatial
+pooler motivate shared bitwise, population-count, selection, and saturation
+primitives. The artifact includes a Python reference, parameterized RTL and
+Chisel, a differential verification harness, a cycle-approximate memory model,
+and composable CHIA evaluation nodes. An optional API-only language-model
+proposer receives aggregate feedback without access to the reference or test
+generator. The current local evidence is a reproducible synthetic model study;
+distributed agent execution, simulator correctness, and physical PPA require
+separate recorded runs. We present the evaluator and control protocol without
+claiming unmeasured hardware improvements or agent superiority.
+\end{abstract}
+
+\section{Motivation and scope}
+The target is logic near memory, rather than an HBM controller or physical
+interface. HDC workloads motivate XOR binding, thresholded bundling, cyclic
+permutation, and Hamming similarity. Sparse binary-vector workloads also need
+overlap, selection, and saturating permanence updates. Sharing primitive
+operations suggests a compact tile, but it does not establish that an agent
+is needed to discover its implementation.
+
+Our research question is whether bounded program synthesis of address and
+issue policies improves on finite parameter search under a shared evaluator.
+The controls are essential: a favorable comparison against one starting design
+does not establish an advantage over random or exhaustive search. The artifact
+therefore preserves both successful and rejected evaluations, records provenance,
+and labels model estimates separately from physical measurements.
+
+We deliberately exclude model fine-tuning, physical HBM implementation, FPGA
+bring-up, and place-and-route. The current implementation also excludes
+automatic top-k RTL rewriting and full Chipyard integration. Those boundaries
+are visible in machine-readable status fields rather than hidden behind a
+single successful workflow exit code.
+
+\section{Tile and functional contract}
+The legacy tile accepts two binary vectors, a packed candidate-vector set,
+and an opcode. Candidate zero occupies the least significant packed bits.
+The retained opcodes implement XOR, rotate-left, threshold vote, per-bit count,
+Hamming distance, and nearest-K indices. Equal distances select the lower
+candidate index. Unused output buses and reserved opcodes return zero. The
+baseline is combinational; clock/reset ports do not imply a pipeline.
+
+Parameter repairs cover one-element candidate sets, non-power-of-two rotate
+widths, auxiliary-bus capacity, and invalid K values. A separate saturation
+block implements permanence updates; the vote-counter opcode must not be
+misrepresented as learning. The Chisel source mirrors these contracts.
+
+The Python reference additionally provides HDC encode/query composition and
+global spatial-pooler inhibition over supplied connectivity masks. These
+algorithms are not a claim of a trained classifier or a complete HTM model.
+Synthetic examples include reference answers and explicit provenance labels.
+
+\section{Evaluator and isolation}
+Directed cases cover zero/all-one patterns, thresholds, rotations, duplicate
+candidates, stable ties, and boundary counts. Seeded random cases use separate
+development and heldout streams. The HDL process receives inputs only; expected
+answers remain in the Python comparator. The comparator checks order, every
+output bus, unknown values, missing observations, and the completion marker.
+Reference-source hashes detect accidental evaluator edits. Hash checks alone
+are not an operating-system sandbox for malicious HDL.
+
+The actual automatic proposal interface accepts JSON and bounded integer
+expressions. It provides no shell, file reader, code-execution tool, or evaluator
+source to the model. An AST interpreter rejects calls, imports, attributes,
+unbounded shifts, and excessive expression depth. Every address mapping must be
+injective over the complete benchmark burst domain and remain within physical
+coordinate bounds. The evaluator fixes the workload and request count; candidates
+cannot remove traffic. This restriction gives an enforceable interface boundary
+for the implemented search domain, rather than claiming arbitrary RTL isolation.
+
+\section{Memory model and CHIA cascade}
+The read-only memory model exposes pseudo channels, banks, rows, burst transfer,
+row hits, and row conflicts. Timing parameters reference gem5's HBM2 interface
+\cite{gem5hbm}. This is parameterization, not calibration: refresh, bank-group
+timing, command-bus details, writes, and physical effects remain omitted. Memory
+and logical datapath cycles are added conservatively without overlap. Every
+result is marked \emph{cycle-approximate} and \emph{uncalibrated} until compared
+against external gem5 observations.
+
+CHIA \cite{chia} supplies task dependencies and heterogeneous worker resource
+tags. Tier 0 smoke-checks the shared RTL baseline; Tier 1 evaluates the candidate
+and records gate/model outcomes; Tier 2 optionally invokes configured synthesis
+tools. Artifacts return to the head before an ephemeral worker disappears. The
+current synthesis node measures the shared baseline, not a distinct hardware
+implementation for every logical lane-width candidate. Tier 3 is an explicit
+unimplemented extension point. The local fallback calls the same core evaluator
+without claiming that a distributed CHIA run occurred.
+
+Tailscale configurations distinguish existing routed interfaces from CHIA's
+userspace SOCKS/CONNECT relay. A managed GCP template is optional and never
+launched by the default script. Result archiving precedes teardown because
+CHIA-managed cloud instances can be deleted by \texttt{chia down}.
+
+\section{Experimental protocol and current evidence}
+The finite control space contains 144 combinations: four logical lane widths,
+six prefetch depths, three layouts, and two issue policies. Grid search
+enumerates this space; random search permutes it without replacement. Both
+receive the same workload and attempted-evaluation budget. Invalid agent
+proposals consume proposal budget. Wall time is recorded separately, so equal
+evaluation count is not called equal monetary cost.
+
+\begin{table}[t]
+\centering
+\caption{Evidence categories; update only from archived run manifests.}
+\begin{tabular}{ll}
+\toprule
+Category & Initial artifact state\\
+\midrule
+Python reference / invariant tests & Executed locally\\
+Synthetic examples & Generated, labeled synthetic\\
+Grid/random memory estimates & Executed locally\\
+Live Gemini proposal comparison & Requires private run\\
+RTL differential 100k gate & Requires simulator report\\
+Candidate physical area/frequency & Not measured\\
+gem5 calibration & Not performed\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+We executed three 100-attempt-per-arm model comparisons and one exhaustive
+144-attempt-per-arm comparison, each with a shared baseline outside the arm
+budget. The archive contains 888 search attempts and four baselines: 892
+analytical evaluations, not 892 distinct chips or implemented candidates.
+All records have status \texttt{model\_evaluated}; none has an RTL pass, an LLM
+proposal, or a physical synthesis result. The evaluated source digest begins
+\texttt{6107b2d7f979dbbb}; the complete digest, workload hashes, and checked CSV
+hashes are recorded in \texttt{docs/LOCAL\_RESULTS.md}.
+
+\begin{table}[t]
+\centering
+\caption{Actual local analytical results: best modeled operations per cycle.
+The last row exhausts the complete finite control space.}
+\begin{tabular}{rrrrr}
+\toprule
+Seed & Budget/arm & Baseline & Grid & Random\\
+\midrule
+20260923 & 100 & 0.095352 & 0.171951 & 0.316518\\
+20260924 & 100 & 0.095298 & 0.171582 & 0.316440\\
+20260925 & 100 & 0.095302 & 0.171731 & 0.316127\\
+20260923 & 144 & 0.095352 & 0.316518 & 0.316518\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The first 100 grid configurations are a prefix of a fixed ordering that reaches
+larger prefetch depths late. Random permutations examine a different subset;
+their higher best estimates in these three truncated runs therefore do not
+establish general search superiority. Both exhaustive arms reach exactly the
+same optimum. No agent comparison is possible without recorded provider calls.
+All candidates retain 2,560 logical operations and 5,120 memory bursts per trace.
+The results are uncalibrated model estimates, not measured hardware speedups.
+
+The artifact also contains 256 synthetic HDC and 256 synthetic HTM examples
+with reference outputs and verified content hashes. No fitting or fine-tuning
+was performed. Local validation comprises 39 core Python tests, 12 workflow
+tests, and two Chisel-adapter tests. Chisel compilation and four CHIRRTL elaborations succeeded, including
+default, one-bit, irregular-width, and standalone-permanence configurations.
+These software checks and elaborations do not substitute for the pending RTL
+differential runs. No historical candidate count or spend from the planning
+document is treated as an experimental observation.
+
+The initial model Pareto set minimizes modeled cycles, queue storage, and lane
+width. It is not a silicon PPA front. The intended throughput-per-area metric
+requires a verified candidate-specific implementation, a measured synthesis
+frequency, and a reported area under stated constraints. Substituting generic
+cell counts or shared-baseline area would conflate incompatible evidence.
+
+\section{Limitations and next measurements}
+The first required follow-up is functional simulation of both emitted Chisel
+and legacy RTL, including permanence. Next, a real CHIA/Gemini run can compare
+the restricted program domain against both controls across repeated seeds.
+Physical claims require implementing selected policies in hardware, reverifying
+them, and using consistent synthesis corners and timing constraints. External
+gem5 traces are needed to assess the memory model's approximation error.
+
+These omissions limit the present contribution to a reproducible evaluator,
+control protocol, and reusable workflow artifact. They do not invalidate those
+components, but they prevent a claim of a completed physical-design study.
+Positive and negative agent results are both acceptable outcomes under the
+same predeclared evaluator; neither can be substituted by unexecuted stages.
+
+\section*{Reproducibility and AI assistance}
+The artifact includes launch commands, source hashes, SQLite records, synthetic
+data provenance, and explicit missing-tool statuses. Team members must review
+this manuscript, supply author information, verify the final PDF length, and
+publish the repository/result release. OpenAI Codex assisted implementation,
+tests, documentation, and this manuscript draft. Human authors are responsible
+for the submitted claims and evidence.
+
+\begin{thebibliography}{9}
+\bibitem{chia} CHIA authors, ``CHIA: An Open-Source Framework for Principled,
+Agentic AI-Driven Hardware/Software Co-Design Research,'' arXiv:2606.27350, 2026.
+\url{https://arxiv.org/abs/2606.27350}.
+\bibitem{gem5hbm} gem5 project, ``HBM memory interfaces,''
+\url{https://github.com/gem5/gem5/blob/stable/src/python/gem5/components/memory/dram_interfaces/hbm.py}.
+\bibitem{hackathon} A$^3$ workshop, ``CHIA Hackathon,''
+\url{https://agentic-arch.org/hackathon.html}.
+\end{thebibliography}
+\end{document}

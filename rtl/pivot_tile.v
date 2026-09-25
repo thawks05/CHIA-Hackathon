@@ -1,7 +1,9 @@
 module pivot_tile #(
     parameter WIDTH = 512,
     parameter N     = 8,
-    parameter K     = 3
+    parameter K     = 3,
+    parameter AUX_WIDTH = (WIDTH*$clog2(N+1) > K*((N > 1) ? $clog2(N) : 1))
+                        ? WIDTH*$clog2(N+1) : K*((N > 1) ? $clog2(N) : 1)
 )
 (
     input  wire                          clk,
@@ -13,7 +15,7 @@ module pivot_tile #(
 
     output reg  [WIDTH-1:0]              result_vector,
     output reg  [N*$clog2(WIDTH+1)-1:0]  result_distance,
-    output reg  [WIDTH*$clog2(N+1)-1:0]  result_aux   // OP_COUNTER: packed per-bit counts. OP_TOPK: packed top-k indices, zero-padded.
+    output reg  [AUX_WIDTH-1:0]          result_aux   // packed counts or top-k indices, zero-padded
 );
     localparam OP_XOR      = 3'd0;
     localparam OP_SHIFT    = 3'd1;
@@ -24,7 +26,16 @@ module pivot_tile #(
 
     localparam DIST_WIDTH  = $clog2(WIDTH+1);
     localparam COUNT_WIDTH = $clog2(N+1);
-    localparam IDX_WIDTH   = $clog2(N);
+    localparam IDX_WIDTH   = (N > 1) ? $clog2(N) : 1;
+
+    // synthesis translate_off
+    initial begin
+        if (WIDTH < 1 || N < 1 || K < 1 || K > N)
+            $fatal(1, "pivot_tile requires WIDTH>=1, N>=1, 1<=K<=N");
+        if (AUX_WIDTH < WIDTH*COUNT_WIDTH || AUX_WIDTH < K*IDX_WIDTH)
+            $fatal(1, "AUX_WIDTH is too small for counts or top-k indices");
+    end
+    // synthesis translate_on
 
     wire [WIDTH-1:0]             xor_result;
     wire [WIDTH-1:0]             shift_result;
@@ -73,7 +84,7 @@ module pivot_tile #(
     always @(*) begin
         result_vector   = {WIDTH{1'b0}};
         result_distance = {(N*DIST_WIDTH){1'b0}};
-        result_aux      = {(WIDTH*COUNT_WIDTH){1'b0}};
+        result_aux      = {AUX_WIDTH{1'b0}};
 
         case (opcode)
             OP_XOR:      result_vector = xor_result;

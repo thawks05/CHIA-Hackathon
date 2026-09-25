@@ -11,7 +11,8 @@ module pivot_majority #(
 );
     // clk/rst/operand_b unused: majority votes bitwise across vectors_in,
     // using the low bits of operand_a as the vote threshold (count >= threshold => 1).
-    wire [$clog2(N+1)-1:0] threshold = operand_a[$clog2(N+1)-1:0];
+    // Assignment truncates or zero extends, including WIDTH < COUNT_WIDTH.
+    wire [$clog2(N+1)-1:0] threshold = operand_a;
 
     integer bit_pos;
     integer vec_idx;

@@ -1,0 +1,19 @@
+{
+  "name": "gem5_hbm2_parameterized_uncalibrated",
+  "source": "https://github.com/gem5/gem5/blob/stable/src/python/gem5/components/memory/dram_interfaces/hbm.py",
+  "source_class": "HBM_2000_4H_1x64",
+  "source_access_date": "2026-09-23",
+  "calibration_status": "not_calibrated_against_gem5_runs",
+  "pseudo_channels": 16,
+  "banks_per_channel": 16,
+  "burst_bytes": 32,
+  "row_bytes": 1024,
+  "tck_ns": 1.0,
+  "t_rcd_cycles": 12,
+  "t_cl_cycles": 18,
+  "t_rp_cycles": 14,
+  "t_ras_cycles": 28,
+  "t_ccd_cycles": 3,
+  "t_burst_cycles": 2,
+  "omissions": ["refresh", "bank-group timing", "shared command bus", "write turnaround", "thermal/power effects", "physical HBM controller"]
+}

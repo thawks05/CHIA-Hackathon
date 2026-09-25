@@ -12,7 +12,9 @@ module pivot_shift #(
 );
     // clk/rst/vectors_in unused: shift rotates operand_a using the low bits
     // of operand_b as the (wrapped) rotate amount.
-    wire [$clog2(WIDTH)-1:0] shift_amount = operand_b[$clog2(WIDTH)-1:0];
+    localparam SHIFT_WIDTH = (WIDTH > 1) ? $clog2(WIDTH) : 1;
+    wire [SHIFT_WIDTH-1:0] encoded_amount = operand_b;
+    wire [SHIFT_WIDTH-1:0] shift_amount = encoded_amount % WIDTH;
 
     assign shift_output = (operand_a << shift_amount) | (operand_a >> (WIDTH - shift_amount));
 endmodule

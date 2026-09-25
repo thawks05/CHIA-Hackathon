@@ -1,0 +1,8 @@
+{
+  "contract": "pivot-permanence-v1",
+  "sha256": {
+    "model/pivot_golden.py": "5a931356496c6f99278715eeebfc6b58919f042b8b827b111d1dbc90106ae2c1",
+    "verification/permanence.py": "ae18c9a3a891ddb7e2fa923b6357f5e6d030ecca41947fae7a8bc734c6080776",
+    "tb/permanence_tb.v": "d1b2399dcd5bc04239526f7d90b78a0c5517d2965b25b8bb192b649496bad549"
+  }
+}
